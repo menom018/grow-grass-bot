@@ -1,4 +1,5 @@
 interface GithubPushConfig {
+  token: string;
   owner: string;
   repo: string;
   files: {

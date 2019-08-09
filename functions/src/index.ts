@@ -3,7 +3,6 @@ import * as functions from "firebase-functions";
 import * as express from "express";
 import * as line from "@line/bot-sdk";
 
-process.env.GITHUB_API_TOKEN = functions.config().github.api_token;
 import { gitCommitPush } from "./github";
 const midllewareConfig: line.MiddlewareConfig = {
   channelSecret: functions.config().line.channel_secret,
@@ -59,6 +58,7 @@ async function handleEvent(event: line.MessageEvent) {
 async function growGrassToGithub(): Promise<string> {
   try {
     await gitCommitPush({
+      token: functions.config().github.api_token,
       owner: "menom018",
       repo: "til",
       // commit files
