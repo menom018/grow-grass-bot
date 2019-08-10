@@ -63,8 +63,7 @@ async function growGrassToGithub(): Promise<string> {
     await gitCommitPush({
       token: functions.config().github.api_token,
       owner: "menom018",
-      repo: "til",
-      // commit files
+      repo: "growgrass",
       file: {
         path: "GrowGlass.md",
         content: `草生やしたったwww ${new Date().toLocaleString()}`
