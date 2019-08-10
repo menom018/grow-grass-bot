@@ -2,8 +2,8 @@
 import * as functions from "firebase-functions";
 import * as express from "express";
 import * as line from "@line/bot-sdk";
-
 import { gitCommitPush } from "./github";
+
 const midllewareConfig: line.MiddlewareConfig = {
   channelSecret: functions.config().line.channel_secret,
   channelAccessToken: functions.config().line.channel_token
@@ -13,6 +13,7 @@ const clientConfig: line.ClientConfig = {
   channelAccessToken: functions.config().line.channel_token
 };
 
+const client = new line.Client(clientConfig);
 const app = express();
 
 app.post("/webhook", line.middleware(midllewareConfig), (req, res) => {
@@ -27,7 +28,6 @@ app.get("/", (req, res) => {
   res.send("ok");
 });
 
-const client = new line.Client(clientConfig);
 async function handleEvent(event: line.MessageEvent) {
   if (event.type !== "message" || event.message.type !== "text") {
     return Promise.resolve(null);
@@ -35,12 +35,15 @@ async function handleEvent(event: line.MessageEvent) {
 
   if (event.message.text.includes("草生やす")) {
     // git hub に草生やす
-    return client.replyMessage(event.replyToken, [
-      {
-        type: "text",
-        text: await growGrassToGithub()
-      }
-    ]);
+    await client.replyMessage(event.replyToken, {
+      type: "text",
+      text: `草はやしたるわｗｗ`
+    });
+    const message = await growGrassToGithub();
+    return client.pushMessage(event.source.userId!, {
+      type: "text",
+      text: message
+    });
   } else {
     return client.replyMessage(event.replyToken, [
       {
@@ -49,7 +52,7 @@ async function handleEvent(event: line.MessageEvent) {
       },
       {
         type: "text",
-        text: event.message.text + "www" //実際に返信の言葉を入れる箇所
+        text: event.message.text + "www"
       }
     ]);
   }
@@ -62,16 +65,14 @@ async function growGrassToGithub(): Promise<string> {
       owner: "menom018",
       repo: "til",
       // commit files
-      files: [
-        {
-          path: "GrowGlass.md",
-          content: `草生やしたったwww ${new Date().toLocaleString()}`
-        }
-      ],
-      fullyQualifiedRef: "heads/master",
+      file: {
+        path: "GrowGlass.md",
+        content: `草生やしたったwww ${new Date().toLocaleString()}`
+      },
+      branch: "master",
       commitMessage: "grow grass for bot"
     });
-    console.log("success grow glass", res);
+    console.log("success grow glass");
     return `草生やしたったwww`;
   } catch (error) {
     console.error(error);
